@@ -1,6 +1,6 @@
-language: scalas
-scala:
-  - 2.12.8
+language: scala
+script:
+  - sbt test
 services:
   - postgresql
 before_script:
