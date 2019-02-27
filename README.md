@@ -23,6 +23,8 @@ when the data is updated or deleted in Postgres, the tables are bloat as they ge
   export DB_PASSWORD=postgres
   export BATCH_OFFSET=1
   export BATCH_SIZE=10000
+  export ENABLE_VACUUM=true
+  export EXECUTE_VACUUM_EVERY_N_BATCHES=3
   export SCRIPT_PATH=/home/ubuntu/update_users.sql
   export TABLES_TO_VACUUM=users,addresses
   ```

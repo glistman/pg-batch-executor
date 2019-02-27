@@ -14,7 +14,7 @@ class PgBatchTest extends FunSuite {
     val connection = pgConnection.createConnection
     try {
       createTestTable(connection)
-      PgBatch.run(connection, filePath, batchSize, batchOffset, List())
+      PgBatch.run(connection, filePath, batchSize, batchOffset, List(), true, 1)
       val ps = connection.prepareStatement("SELECT count(*) FROM test_table")
       try {
         val rs = ps.executeQuery()
@@ -32,7 +32,7 @@ class PgBatchTest extends FunSuite {
     val connection = pgConnection.createConnection
     try {
       createTestTable(connection)
-      PgBatch.run(connection, filePath, batchSize, batchOffset, List())
+      PgBatch.run(connection, filePath, batchSize, batchOffset, List(), true, 1)
       val ps = connection.prepareStatement("SELECT count(*) FROM test_table")
       try {
         val rs = ps.executeQuery()
@@ -53,8 +53,8 @@ class PgBatchTest extends FunSuite {
     val connection = pgConnection.createConnection
     try {
       createTestTable(connection)
-      PgBatch.run(connection, filePathInserts, insertBatchSize, insertBatchOffset, List())
-      PgBatch.run(connection, filePathUpdates, updateBatchSize, updateBatchOffset, List())
+      PgBatch.run(connection, filePathInserts, insertBatchSize, insertBatchOffset, List(), true, 1)
+      PgBatch.run(connection, filePathUpdates, updateBatchSize, updateBatchOffset, List(), true, 1)
       val ps = connection.prepareStatement("SELECT count(*) FROM test_table WHERE name = 'update'")
       try {
         val rs = ps.executeQuery()
@@ -75,8 +75,8 @@ class PgBatchTest extends FunSuite {
     val connection = pgConnection.createConnection
     try {
       createTestTable(connection)
-      PgBatch.run(connection, filePathInserts, insertBatchSize, insertBatchOffset, List())
-      PgBatch.run(connection, filePathUpdates, updateBatchSize, updateBatchOffset, List("test_table"))
+      PgBatch.run(connection, filePathInserts, insertBatchSize, insertBatchOffset, List(), true, 1)
+      PgBatch.run(connection, filePathUpdates, updateBatchSize, updateBatchOffset, List("test_table"), true, 1)
       val ps = connection.prepareStatement("SELECT count(*) FROM test_table WHERE name = 'update'")
       try {
         val rs = ps.executeQuery()

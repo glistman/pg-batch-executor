@@ -11,6 +11,8 @@ object PgBatch {
     val batchSize = sys.env.getOrElse("BATCH_SIZE", "10000").toInt
     val filePath = sys.env("SCRIPT_PATH")
     val tablesToVacuum = sys.env("TABLES_TO_VACUUM")
+    val enableVacuum = sys.env("ENABLE_VACUUM").toBoolean
+    val executeVacuumEveryNBatches = sys.env("EXECUTE_VACUUM_EVERY_N_BATCHES").toInt
     val pgConnection = PGConnection(
       sys.env("DB_HOST"),
       sys.env("DB_PORT"),
@@ -19,16 +21,28 @@ object PgBatch {
       sys.env("DB_PASSWORD")
     )
     val connection = pgConnection.createConnection
-    try run(connection, filePath, batchSize, batchOffset, tablesToVacuum.split(",").toList)
+    try run(connection, filePath, batchSize, batchOffset, tablesToVacuum.split(",").toList, enableVacuum, executeVacuumEveryNBatches)
     finally connection.close()
   }
 
-  def run(connection: Connection, filePath: String, batchSize: Int, batchOffset: Int, tablesToVacuum: List[String]): Unit = {
+  def run(connection: Connection,
+          filePath: String,
+          batchSize: Int,
+          batchOffset: Int,
+          tablesToVacuum: List[String],
+          enableVacuum: Boolean,
+          executeVacuumEveryNBatches: Int): Unit = {
     val vacuums = tablesToVacuum.map(table => s"VACUUM ANALYZE $table")
-    executeBatches(connection, filePath, batchSize, batchOffset, vacuums)
+    executeBatches(connection, filePath, batchSize, batchOffset, vacuums, enableVacuum, executeVacuumEveryNBatches)
   }
 
-  protected def executeBatches(connection: Connection, filePath: String, batchSize: Int, batchOffset: Int, vacuums: List[String]): Unit = {
+  protected def executeBatches(connection: Connection,
+                               filePath: String,
+                               batchSize: Int,
+                               batchOffset: Int,
+                               vacuums: List[String],
+                               enableVacuum: Boolean,
+                               executeVacuumEveryNBatches: Int): Unit = {
     if (!connection.getAutoCommit) {
       throw new RuntimeException("There is already a transaction in progress")
     }
@@ -47,7 +61,10 @@ object PgBatch {
         if (currentBatch >= batchOffset) {
           val result = stm.executeBatch()
           connection.commit()
-          executeVacuum(connection, vacuums)
+          if (enableVacuum && currentBatch % executeVacuumEveryNBatches == 0) {
+            println("VACUUM")
+            executeVacuum(connection, vacuums)
+          }
           println(s"Execute Batch:$currentBatch>> result[${result.size}]")
         } else {
           stm.clearBatch()
