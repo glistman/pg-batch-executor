@@ -82,6 +82,7 @@ object PgBatch {
     if (vacuums.nonEmpty) {
       connection.setAutoCommit(true)
       val stm = connection.createStatement()
+      stm.setQueryTimeout(0)
       try vacuums.foreach(stm.execute)
       finally stm.close()
       connection.setAutoCommit(false)
